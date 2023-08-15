@@ -1,0 +1,22 @@
+[package]
+name = "StarkBank"
+version = "0.1.0"
+license = "MIT"
+authors = []
+keywords = []
+description = "View in an interactive way your borrowing positions"
+
+repository = "https://github.com/@GustaveCharles/StarkBank"
+
+[[target.starknet-contract]]
+sierra = true
+casm = true
+
+[dependencies]
+# TODO: Make Starknet version configurable
+starknet = ">=2.1.0"
+# TODO: Make alexandria dependency optional
+alexandria_data_structures = { git = "https://github.com/keep-starknet-strange/alexandria.git" }
+
+[tool.snforge]
+exit_first = false
