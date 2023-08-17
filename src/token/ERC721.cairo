@@ -16,9 +16,8 @@ trait IERC721<TContractState> {
     fn set_approval_for_all(ref self: TContractState, operator: ContractAddress, approved: bool);
     fn approve(ref self: TContractState, to: ContractAddress, token_id: u256);
     fn transfer_from(
-        ref self: TContractState, from: ContractAddress, to: ContractAddress, token_id: u256    
+        ref self: TContractState, from: ContractAddress, to: ContractAddress, token_id: u256
     );
-
 }
 
 #[starknet::contract]
@@ -140,11 +139,6 @@ mod ERC721 {
             );
             self._approve(to, token_id);
         }
-
-        fn mint(self: @ContractState,  to: ContractAddress, token_id: u256){
-
-
-        }
     }
 
     #[generate_trait]
@@ -208,7 +202,6 @@ mod ERC721 {
             assert(from == self._owner_of(token_id), 'Transfer from incorrect owner');
             assert(!to.is_zero(), 'ERC721: transfer to 0');
 
-            self._beforeTokenTransfer(from, to, token_id, 1.into());
             assert(from == self._owner_of(token_id), 'Transfer from incorrect owner');
 
             self.token_approvals.write(token_id, contract_address_const::<0>());
@@ -219,14 +212,10 @@ mod ERC721 {
             self.owners.write(token_id, to);
 
             self.emit(Event::Transfer(Transfer { from, to, token_id }));
-
-            self._afterTokenTransfer(from, to, token_id, 1.into());
         }
 
         fn _mint(ref self: ContractState, to: ContractAddress, token_id: u256) {
             assert(!to.is_zero(), 'ERC721: mint to 0');
-            assert(!self._exists(token_id), 'ERC721: already minted');
-            self._beforeTokenTransfer(contract_address_const::<0>(), to, token_id, 1.into());
             assert(!self._exists(token_id), 'ERC721: already minted');
 
             self.balances.write(to, self.balances.read(to) + 1.into());
@@ -236,14 +225,11 @@ mod ERC721 {
                 .emit(
                     Event::Transfer(Transfer { from: contract_address_const::<0>(), to, token_id })
                 );
-
-            self._afterTokenTransfer(contract_address_const::<0>(), to, token_id, 1.into());
         }
 
 
         fn _burn(ref self: ContractState, token_id: u256) {
             let owner = self._owner_of(token_id);
-            self._beforeTokenTransfer(owner, contract_address_const::<0>(), token_id, 1.into());
             let owner = self._owner_of(token_id);
             self.token_approvals.write(token_id, contract_address_const::<0>());
 
@@ -255,24 +241,6 @@ mod ERC721 {
                         Transfer { from: owner, to: contract_address_const::<0>(), token_id }
                     )
                 );
-
-            self._afterTokenTransfer(owner, contract_address_const::<0>(), token_id, 1.into());
         }
-
-        fn _beforeTokenTransfer(
-            ref self: ContractState,
-            from: ContractAddress,
-            to: ContractAddress,
-            first_token_id: u256,
-            batch_size: u256
-        ) {}
-
-        fn _afterTokenTransfer(
-            ref self: ContractState,
-            from: ContractAddress,
-            to: ContractAddress,
-            first_token_id: u256,
-            batch_size: u256
-        ) {}
     }
 }
