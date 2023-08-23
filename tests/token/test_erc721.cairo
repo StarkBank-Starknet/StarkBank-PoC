@@ -64,7 +64,6 @@ fn test_constructor() {
     assert(ERC721MetadataImpl::symbol(@state) == SYMBOL, 'Symbol should be SYMBOL');
     assert(ERC721Impl::balance_of(@state, OWNER()) == 1, 'Balance should be one');
     assert(ERC721Impl::owner_of(@state, TOKEN_ID) == OWNER(), 'OWNER should be owner');
-
 }
 
 
