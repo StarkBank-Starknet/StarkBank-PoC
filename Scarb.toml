@@ -15,8 +15,8 @@ casm = true
 [dependencies]
 # TODO: Make Starknet version configurable
 starknet = ">=2.1.0"
-# TODO: Make alexandria dependency optional
-alexandria_data_structures = { git = "https://github.com/keep-starknet-strange/alexandria.git" }
+snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry.git", tag = "v0.4.0" }
+
 
 [tool.snforge]
 exit_first = false
