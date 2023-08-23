@@ -12,6 +12,10 @@ const IERC721_RECEIVER_ID: felt252 =
 
 #[starknet::interface]
 trait IERC721<TState> {
+    /// Returns the name of the token.
+    fn name(self: @TState) -> felt252;
+    /// Returns the symbol of the token, usually a shorter version of the name.
+    fn symbol(self: @TState) -> felt252;
     fn balance_of(self: @TState, account: ContractAddress) -> u256;
     fn owner_of(self: @TState, token_id: u256) -> ContractAddress;
     fn transfer_from(ref self: TState, from: ContractAddress, to: ContractAddress, token_id: u256);
@@ -36,8 +40,6 @@ trait IERC721<TState> {
 //
 #[starknet::interface]
 trait IERC721Metadata<TState> {
-    fn name(self: @TState) -> felt252;
-    fn symbol(self: @TState) -> felt252;
     fn token_uri(self: @TState, token_id: u256) -> felt252;
 }
 

@@ -12,6 +12,7 @@ use starknet::{
     ClassHash,
 };
 use cheatcodes::PreparedContract;
+use snforge_std::PrintTrait;
 
 // Local imports.
 use StarkBank::token::ERC20::{IERC20SafeDispatcher, IERC20SafeDispatcherTrait};
@@ -91,10 +92,13 @@ fn deploy_erc20(name: felt252, symbol: felt252, initial_supply: u128, recipient:
     constructor_calldata.append(symbol);
     constructor_calldata.append(initial_supply.into());
     constructor_calldata.append(recipient.into());
+    'deploy erc20'.print();
     let prepared = PreparedContract {
         class_hash: class_hash, constructor_calldata: @constructor_calldata
     };
-    deploy(prepared).unwrap()
+    let contract_address = deploy(prepared).unwrap();
+    contract_address.print();
+    contract_address
 }
 
 /// Utility function to teardown the test environment.

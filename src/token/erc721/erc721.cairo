@@ -3,6 +3,30 @@
 
 use starknet::ContractAddress;
 
+#[starknet::interface]
+trait IERC721<TState> {
+    /// Returns the name of the token.
+    fn name(self: @TState) -> felt252;
+    /// Returns the symbol of the token, usually a shorter version of the name.
+    fn symbol(self: @TState) -> felt252;
+    fn balance_of(self: @TState, account: ContractAddress) -> u256;
+    fn owner_of(self: @TState, token_id: u256) -> ContractAddress;
+    fn transfer_from(ref self: TState, from: ContractAddress, to: ContractAddress, token_id: u256);
+    // fn safe_transfer_from(
+    //     ref self: TState,
+    //     from: ContractAddress,
+    //     to: ContractAddress,
+    //     token_id: u256,
+    //     data: Span<felt252>
+    // );
+    fn approve(ref self: TState, to: ContractAddress, token_id: u256);
+    fn set_approval_for_all(ref self: TState, operator: ContractAddress, approved: bool);
+    fn get_approved(self: @TState, token_id: u256) -> ContractAddress;
+    fn is_approved_for_all(
+        self: @TState, owner: ContractAddress, operator: ContractAddress
+    ) -> bool;
+}
+
 #[starknet::contract]
 mod ERC721 {
     use array::SpanTrait;
@@ -11,7 +35,6 @@ mod ERC721 {
     use starknet::ContractAddress;
     use starknet::get_caller_address;
     use zeroable::Zeroable;
-    use snforge_std::PrintTrait;
 
 
     #[storage]
@@ -62,7 +85,6 @@ mod ERC721 {
         recipient: ContractAddress,
         token_id: u256
     ) {
-        'print constructor'.print();
         self.initializer(name, symbol);
         self._mint(recipient, token_id);
     }
@@ -73,13 +95,6 @@ mod ERC721 {
 
     #[external(v0)]
     impl ERC721MetadataImpl of interface::IERC721Metadata<ContractState> {
-        fn name(self: @ContractState) -> felt252 {
-            self._name.read()
-        }
-
-        fn symbol(self: @ContractState) -> felt252 {
-            self._symbol.read()
-        }
 
         fn token_uri(self: @ContractState, token_id: u256) -> felt252 {
             assert(self._exists(token_id), 'ERC721: invalid token ID');
@@ -89,6 +104,15 @@ mod ERC721 {
 
     #[external(v0)]
     impl ERC721Impl of interface::IERC721<ContractState> {
+
+        fn name(self: @ContractState) -> felt252 {
+            self._name.read()
+        }
+
+        fn symbol(self: @ContractState) -> felt252 {
+            self._symbol.read()
+        }
+
         fn balance_of(self: @ContractState, account: ContractAddress) -> u256 {
             assert(!account.is_zero(), 'ERC721: invalid account');
             self._balances.read(account)
@@ -158,9 +182,7 @@ mod ERC721 {
     #[generate_trait]
     impl InternalImpl of InternalTrait {
         fn initializer(ref self: ContractState, name_: felt252, symbol_: felt252) {
-            'print initializer'.print();
             self._name.write(name_);
-            'print initializer 2'.print();
             self._symbol.write(symbol_);
         }
 
@@ -206,7 +228,6 @@ mod ERC721 {
         }
 
         fn _mint(ref self: ContractState, to: ContractAddress, token_id: u256) {
-            'print mint'.print();
             assert(!to.is_zero(), 'ERC721: invalid receiver');
             assert(!self._exists(token_id), 'ERC721: token already minted');
 
