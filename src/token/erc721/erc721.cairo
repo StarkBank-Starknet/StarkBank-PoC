@@ -12,19 +12,17 @@ trait IERC721<TState> {
     fn balance_of(self: @TState, account: ContractAddress) -> u256;
     fn owner_of(self: @TState, token_id: u256) -> ContractAddress;
     fn transfer_from(ref self: TState, from: ContractAddress, to: ContractAddress, token_id: u256);
-    // fn safe_transfer_from(
-    //     ref self: TState,
-    //     from: ContractAddress,
-    //     to: ContractAddress,
-    //     token_id: u256,
-    //     data: Span<felt252>
-    // );
     fn approve(ref self: TState, to: ContractAddress, token_id: u256);
     fn set_approval_for_all(ref self: TState, operator: ContractAddress, approved: bool);
     fn get_approved(self: @TState, token_id: u256) -> ContractAddress;
     fn is_approved_for_all(
         self: @TState, owner: ContractAddress, operator: ContractAddress
     ) -> bool;
+}
+
+#[starknet::interface]
+trait IERC721Metadata<TState>{
+    fn token_uri(self: @TState, token_id: u256) -> felt252;
 }
 
 #[starknet::contract]
@@ -160,19 +158,6 @@ mod ERC721 {
             self._transfer(from, to, token_id);
         }
 
-        // fn safe_transfer_from(
-        //     ref self: ContractState,
-        //     from: ContractAddress,
-        //     to: ContractAddress,
-        //     token_id: u256,
-        //     data: Span<felt252>
-        // ) {
-        //     assert(
-        //         self._is_approved_or_owner(get_caller_address(), token_id),
-        //         'ERC721: unauthorized caller'
-        //     );
-        //     self._safe_transfer(from, to, token_id, data);
-        // }
     }
 
     //
@@ -266,50 +251,9 @@ mod ERC721 {
             self.emit(Transfer { from: owner, to: Zeroable::zero(), token_id });
         }
 
-        // fn _safe_mint(
-        //     ref self: ContractState, to: ContractAddress, token_id: u256, data: Span<felt252>
-        // ) {
-        //     self._mint(to, token_id);
-        //     assert(
-        //         _check_on_erc721_received(Zeroable::zero(), to, token_id, data),
-        //         'ERC721: safe mint failed'
-        //     );
-        // }
-
-        // fn _safe_transfer(
-        //     ref self: ContractState,
-        //     from: ContractAddress,
-        //     to: ContractAddress,
-        //     token_id: u256,
-        //     data: Span<felt252>
-        // ) {
-        //     self._transfer(from, to, token_id);
-        //     assert(
-        //         _check_on_erc721_received(from, to, token_id, data), 'ERC721: safe transfer failed'
-        //     );
-        // }
-
         fn _set_token_uri(ref self: ContractState, token_id: u256, token_uri: felt252) {
             assert(self._exists(token_id), 'ERC721: invalid token ID');
             self._token_uri.write(token_id, token_uri)
         }
     }
-
-    // #[internal]
-    // fn _check_on_erc721_received(
-    //     from: ContractAddress, to: ContractAddress, token_id: u256, data: Span<felt252>
-    // ) -> bool {
-    //     if (DualCaseSRC5 {
-    //         contract_address: to
-    //     }.supports_interface(interface::IERC721_RECEIVER_ID)) {
-    //         DualCaseERC721Receiver {
-    //             contract_address: to
-    //         }
-    //             .on_erc721_received(
-    //                 get_caller_address(), from, token_id, data
-    //             ) == interface::IERC721_RECEIVER_ID
-    //     } else {
-    //         DualCaseSRC5 { contract_address: to }.supports_interface(account::interface::ISRC6_ID)
-    //     }
-    // }
 }
