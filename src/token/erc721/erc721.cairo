@@ -160,6 +160,28 @@ mod ERC721 {
 
     }
 
+    #[starknet::generate_trait]
+    impl UriHelper {
+
+        fn compute_cr(ref self: ContractState){
+
+        }
+
+        fn compute_collateral(ref self: ContractState){
+
+        }
+
+        fn compute_color(ref self: ContractState){
+
+        }
+
+        fn compute_address(){
+
+        }
+
+
+    }
+
     //
     // Internal
     //
@@ -255,5 +277,35 @@ mod ERC721 {
             assert(self._exists(token_id), 'ERC721: invalid token ID');
             self._token_uri.write(token_id, token_uri)
         }
+
+        fn _build_token_uri(ref self: ContractState, token_id: u256){
+             assert(self._exists(token_id), 'ERC721: invalid token ID');
+
+             
+
+        }
     }
 }
+
+
+// <?xml version="1.0" encoding="UTF-8"?>
+// <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet">
+//     <style type="text/css"><![CDATA[
+//         text { font-family: monospace; font-size: 21px; }
+//         .h1 { font-size: 40px; font-weight: 600; }
+//     ]]></style>
+//     <rect width="400" height="400" fill="${background_color}" />
+//     <text class="h1" x="50" y="70">Your lending </text>
+//     <text class="h1" x="80" y="120">position</text>
+//     <text x="70" y="240" style="font-size:100px;"></text>
+//     streamBalance
+//     <text x="210" y="305">Wallet Ξ
+//         weiToEtherString(boundAddress.balance)
+//     </text>
+//     <text x="20" y="350" style="font-size:28px;">
+//         lookupENSName(boundAddress)
+//     </text>
+//     <text x="20" y="380" style="font-size:14px;">0x
+//         addressToString(boundAddress)
+//     </text>
+// </svg>
