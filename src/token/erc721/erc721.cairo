@@ -161,7 +161,7 @@ mod ERC721 {
     }
 
     #[starknet::generate_trait]
-    impl UriHelper {
+    impl UriHelper of interface::IUriHelper<ContractState>{
 
         fn compute_cr(ref self: ContractState){
 
@@ -281,7 +281,7 @@ mod ERC721 {
         fn _build_token_uri(ref self: ContractState, token_id: u256){
              assert(self._exists(token_id), 'ERC721: invalid token ID');
 
-             
+
 
         }
     }
