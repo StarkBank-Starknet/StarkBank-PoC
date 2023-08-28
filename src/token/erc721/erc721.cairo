@@ -300,7 +300,46 @@ mod ERC721 {
             let collateral: felt252 = self._compute_collateral();
 
 
-            
+            let mut arr = ArrayTrait::<felt252>::new();
+
+            arr.append('<svg xmlns="http://www.w3.');
+            arr.append('org/2000/svg" xmlns:xlink="ht');
+            arr.append('tp://www.w3.org/1999/xlink" v');
+            arr.append('ersion="1.1" viewBox="0 0 40');
+            arr.append('0 400" preserveAspectRatio=');
+            arr.append('"xMidYMid meet"> <style type=');
+            arr.append('"text/css"><![CDATA[ text { f');
+            arr.append('ont-family: monospace; font-s');
+            arr.append('ize: 21px; } .h1 { font-size');
+            arr.append(': 40px; font-weight: 600; } ]');
+            arr.append(']></style> <rect width="400"');
+            arr.append(' height="400" fill="#0BB534"');
+            arr.append('/> <text class="h1" x="50" y');
+            arr.append('="70">Your lending </text> <t');
+            arr.append('ext class="h1" x="80" y="120');
+            arr.append('">position:</text> <text x="2');
+            arr.append('5%" y="210" style="font-size');
+            arr.append(':10px; text-anchor: middle;">');
+            arr.append('Health Factor: 3.09 </text> ');
+            arr.append('<text x="25%" y="230" style="fo');
+            arr.append('nt-size:10px; text-anchor: mi');
+            arr.append('ddle;">Collateral: 155$ </text');
+            arr.append('> <text x="75%" y="210" style=');
+            arr.append('"font-size:10px; text-anchor:');
+            arr.append(' middle;">Collateral Ratio: 0');
+            arr.append('.32</text> <text x="75%" y="2');
+            arr.append('30" style="font-size:10px; tex');
+            arr.append('t-anchor: middle;">Liabilities');
+            arr.append(': 40$</text> <text x="50%" y=');
+            arr.append('"360" style="font-size:12px; t');
+            arr.append('ext-anchor: middle;"> Your wa');
+            arr.append('llet address: </text> <text x');
+            arr.append('="50%" y="380" style="font-siz');
+            arr.append('e:10px; text-anchor: middle;">');
+            arr.append('0xF25c288A1FfE4b0a5B90C9cCCDD8E');
+            arr.append('13Bc7c7E685282813F5f9f </text>');
+            arr.append('</svg>');
+
 
 
 
@@ -330,4 +369,44 @@ mod ERC721 {
 //         0xF25c288A1FfE4b0a5B90C9cCCDD8E13Bc7c7E685282813F5f9f
 //     </text>
 // </svg>
+
+
+// '<svg xmlns="http://www.w3.'
+// 'org/2000/svg" xmlns:xlink="ht'
+// 'tp://www.w3.org/1999/xlink" v'
+// 'ersion="1.1" viewBox="0 0 40'
+// '0 400" preserveAspectRatio='
+// '"xMidYMid meet"> <style type='
+// '"text/css"><![CDATA[ text { f'
+// 'ont-family: monospace; font-s'
+// 'ize: 21px; } .h1 { font-size'
+// ': 40px; font-weight: 600; } ]'
+// ']></style> <rect width="400"'
+// ' height="400" fill="#0BB534"'
+// '/> <text class="h1" x="50" y'
+// '="70">Your lending </text> <t'
+// 'ext class="h1" x="80" y="120'
+// '">position:</text> <text x="2'
+// '5%" y="210" style="font-size'
+// ':10px; text-anchor: middle;">'
+// 'Health Factor: 3.09 </text> '
+// '<text x="25%" y="230" style="fo'
+// 'nt-size:10px; text-anchor: mi'
+// 'ddle;">Collateral: 155$ </text'
+// '> <text x="75%" y="210" style='
+// '"font-size:10px; text-anchor:'
+// ' middle;">Collateral Ratio: 0'
+// '.32</text> <text x="75%" y="2'
+// '30" style="font-size:10px; tex'
+// 't-anchor: middle;">Liabilities'
+// ': 40$</text> <text x="50%" y='
+// '"360" style="font-size:12px; t'
+// 'ext-anchor: middle;"> Your wa'
+// 'llet address: </text> <text x'
+// '="50%" y="380" style="font-siz'
+// 'e:10px; text-anchor: middle;">'
+// '0xF25c288A1FfE4b0a5B90C9cCCDD8E'
+// '13Bc7c7E685282813F5f9f </text>'
+// '</svg>'
+
 
