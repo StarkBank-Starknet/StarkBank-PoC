@@ -21,7 +21,7 @@ trait IERC721<TState> {
 }
 
 #[starknet::interface]
-trait IERC721Metadata<TState>{
+trait IERC721Metadata<TState> {
     fn token_uri(self: @TState, token_id: u256) -> felt252;
 }
 
@@ -30,7 +30,7 @@ mod ERC721 {
     use array::SpanTrait;
     use StarkBank::token::erc721::interface;
     use option::OptionTrait;
-    use starknet::ContractAddress;
+    use starknet::{ContractAddress, contract_address_const};
     use starknet::get_caller_address;
     use zeroable::Zeroable;
 
@@ -75,6 +75,17 @@ mod ERC721 {
         approved: bool
     }
 
+    #[derive::Drop]
+    enum Color {
+        Green: felt252,
+        Orange: felt252,
+        Red: felt252,
+    }
+
+    const RED: felt252 = '#CC0E0E';
+    const GREEN: felt252 = '#0BB534';
+    const ORANGE: felt252 = '#FF903F';
+
     #[constructor]
     fn constructor(
         ref self: ContractState,
@@ -93,7 +104,6 @@ mod ERC721 {
 
     #[external(v0)]
     impl ERC721MetadataImpl of interface::IERC721Metadata<ContractState> {
-
         fn token_uri(self: @ContractState, token_id: u256) -> felt252 {
             assert(self._exists(token_id), 'ERC721: invalid token ID');
             self._token_uri.read(token_id)
@@ -102,7 +112,6 @@ mod ERC721 {
 
     #[external(v0)]
     impl ERC721Impl of interface::IERC721<ContractState> {
-
         fn name(self: @ContractState) -> felt252 {
             self._name.read()
         }
@@ -157,29 +166,33 @@ mod ERC721 {
             );
             self._transfer(from, to, token_id);
         }
-
     }
 
     #[generate_trait]
-    impl UriHelper of UriHelperTrait{
-
-        fn compute_cr(ref self: ContractState){
-
+    impl UriHelper of UriHelperTrait {
+        fn _compute_cr(ref self: ContractState) -> felt252 {
+            '3.09'
         }
 
-        fn compute_collateral(ref self: ContractState){
-
+        fn _compute_collateral(ref self: ContractState) -> felt252 {
+            '152.7'
         }
 
-        fn compute_color(ref self: ContractState){
+        fn _compute_color(ref self: ContractState) -> felt252 {
+            let CR: u256 = self._compute_cr().into();
 
+            if (CR <= 1) {
+                RED
+            } else if (CR <= 2) {
+                ORANGE
+            } else {
+                GREEN
+            }
         }
 
-        fn compute_address(){
-
+        fn _compute_starkName(ref self: ContractState) -> felt252 {
+            '0xJustGus'
         }
-
-
     }
 
     //
@@ -278,16 +291,26 @@ mod ERC721 {
             self._token_uri.write(token_id, token_uri)
         }
 
-        fn _build_token_uri(ref self: ContractState, token_id: u256){
-             assert(self._exists(token_id), 'ERC721: invalid token ID');
+        fn _build_token_uri(ref self: ContractState, token_id: u256) {
+            assert(self._exists(token_id), 'ERC721: invalid token ID');
+
+            let color: felt252 = self._compute_color();
+            let CR: felt252 = self._compute_cr();
+            let addr: felt252 = self._compute_starkName();
+            let collateral: felt252 = self._compute_collateral();
+
+
+            
+
+
+
+
 
 
 
         }
     }
 }
-
-
 // <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet">
 //     <style type="text/css"><![CDATA[
 //         text { font-family: monospace; font-size: 21px; }
@@ -307,3 +330,4 @@ mod ERC721 {
 //         0xF25c288A1FfE4b0a5B90C9cCCDD8E13Bc7c7E685282813F5f9f
 //     </text>
 // </svg>
+
