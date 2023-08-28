@@ -160,8 +160,8 @@ mod ERC721 {
 
     }
 
-    #[starknet::generate_trait]
-    impl UriHelper of interface::IUriHelper<ContractState>{
+    #[generate_trait]
+    impl UriHelper of UriHelperTrait{
 
         fn compute_cr(ref self: ContractState){
 
@@ -288,24 +288,22 @@ mod ERC721 {
 }
 
 
-// <?xml version="1.0" encoding="UTF-8"?>
 // <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet">
 //     <style type="text/css"><![CDATA[
 //         text { font-family: monospace; font-size: 21px; }
 //         .h1 { font-size: 40px; font-weight: 600; }
 //     ]]></style>
-//     <rect width="400" height="400" fill="${background_color}" />
+//     <rect width="400" height="400" fill="#0BB534" />
 //     <text class="h1" x="50" y="70">Your lending </text>
-//     <text class="h1" x="80" y="120">position</text>
-//     <text x="70" y="240" style="font-size:100px;"></text>
-//     streamBalance
-//     <text x="210" y="305">Wallet Ξ
-//         weiToEtherString(boundAddress.balance)
+//     <text class="h1" x="80" y="120">position:</text>
+//     <text x="25%" y="210" style="font-size:10px; text-anchor: middle;">Health Factor: 3.09 </text>
+//       <text x="25%" y="230" style="font-size:10px; text-anchor: middle;">Collateral: 155$ </text>
+//     <text x="75%" y="210" style="font-size:10px; text-anchor: middle;">Collateral Ratio: 0.32</text>
+//       <text x="75%" y="230" style="font-size:10px; text-anchor: middle;">Liabilities: 40$</text>
+//     <text x="50%" y="360" style="font-size:12px; text-anchor: middle;">
+//         Your wallet address:
 //     </text>
-//     <text x="20" y="350" style="font-size:28px;">
-//         lookupENSName(boundAddress)
-//     </text>
-//     <text x="20" y="380" style="font-size:14px;">0x
-//         addressToString(boundAddress)
+//     <text x="50%" y="380" style="font-size:10px; text-anchor: middle;">
+//         0xF25c288A1FfE4b0a5B90C9cCCDD8E13Bc7c7E685282813F5f9f
 //     </text>
 // </svg>
