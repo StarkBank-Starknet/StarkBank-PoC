@@ -23,16 +23,20 @@ trait IERC721<TState> {
 #[starknet::interface]
 trait IERC721Metadata<TState> {
     fn token_uri(self: @TState, token_id: u256) -> felt252;
+    fn generate_token_uri(ref self: TState, token_id: u256) -> Span<felt252>;
 }
 
 #[starknet::contract]
 mod ERC721 {
-    use array::SpanTrait;
+    use array::{SpanTrait, ArrayTrait};
+    use traits::Into;
     use StarkBank::token::erc721::interface;
     use option::OptionTrait;
     use starknet::{ContractAddress, contract_address_const};
     use starknet::get_caller_address;
     use zeroable::Zeroable;
+    use cairo_json::json_metadata::{JsonMetadata, JsonMetadataTrait, DisplayType};
+
 
 
     #[storage]
@@ -107,6 +111,21 @@ mod ERC721 {
         fn token_uri(self: @ContractState, token_id: u256) -> felt252 {
             assert(self._exists(token_id), 'ERC721: invalid token ID');
             self._token_uri.read(token_id)
+        }
+
+        fn generate_token_uri(ref self: ContractState, token_id: u256) -> Span<felt252> {
+            let mut uri: Array<felt252> = Default::default();
+            uri.append('data:application/json,');
+
+            let mut metadata: JsonMetadata = JsonMetadata {
+            members: Default::default(), attributes: Default::default()
+            };
+
+            self._add_metadata_members(ref metadata);
+
+            metadata.append_to_string(ref uri);
+
+            uri.span()
         }
     }
 
@@ -286,13 +305,12 @@ mod ERC721 {
             self.emit(Transfer { from: owner, to: Zeroable::zero(), token_id });
         }
 
-        fn _set_token_uri(ref self: ContractState, token_id: u256, token_uri: felt252) {
+        fn _set_token_uri(ref self: ContractState, token_id: u256, token_uri: felt252){
             assert(self._exists(token_id), 'ERC721: invalid token ID');
             self._token_uri.write(token_id, token_uri)
         }
 
-        fn _build_token_uri(ref self: ContractState, token_id: u256) {
-            assert(self._exists(token_id), 'ERC721: invalid token ID');
+        fn _upload_svg_onchain(ref self: ContractState)  -> Span<felt252>{
 
             let color: felt252 = self._compute_color();
             let CR: felt252 = self._compute_cr();
@@ -300,7 +318,8 @@ mod ERC721 {
             let collateral: felt252 = self._compute_collateral();
 
 
-            let mut arr = ArrayTrait::<felt252>::new();
+            let mut arr: Array<felt252> = ArrayTrait::new();
+
 
             arr.append('<svg xmlns="http://www.w3.');
             arr.append('org/2000/svg" xmlns:xlink="ht');
@@ -313,8 +332,9 @@ mod ERC721 {
             arr.append('ize: 21px; } .h1 { font-size');
             arr.append(': 40px; font-weight: 600; } ]');
             arr.append(']></style> <rect width="400"');
-            arr.append(' height="400" fill="#0BB534"');
-            arr.append('/> <text class="h1" x="50" y');
+            arr.append(' height="400" fill="');
+            arr.append(color);
+            arr.append('"/> <text class="h1" x="50" y');
             arr.append('="70">Your lending </text> <t');
             arr.append('ext class="h1" x="80" y="120');
             arr.append('">position:</text> <text x="2');
@@ -340,14 +360,22 @@ mod ERC721 {
             arr.append('13Bc7c7E685282813F5f9f </text>');
             arr.append('</svg>');
 
-
-
-
-
-
-
-
+            arr.span()
         }
+
+        fn _add_metadata_members(ref self: ContractState, ref metadata: JsonMetadata){
+            let mut name = ArrayTrait::<felt252>::new();
+            name.append('dNFTzzz');
+
+            let mut description = ArrayTrait::<felt252>::new();
+            description.append('View in an interactive way your');
+            description.append('borrowing positions');
+            
+            metadata.add_member('description', description.span());
+            metadata.add_member('name',name.span());
+            metadata.add_member('image', self._upload_svg_onchain());
+        }
+
     }
 }
 // <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet">

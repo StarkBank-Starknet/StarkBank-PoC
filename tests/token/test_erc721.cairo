@@ -3,7 +3,7 @@
 // *************************************************************************
 
 // Core lib imports.
-use array::ArrayTrait;
+use array::{SpanTrait,ArrayTrait};
 use result::ResultTrait;
 use option::OptionTrait;
 use traits::{TryInto, Into};
@@ -22,7 +22,7 @@ use StarkBank::token::erc721::ERC721::{
 use StarkBank::token::erc721::ERC721;
 use StarkBank::token::erc721;
 
-use StarkBank::token::erc721::erc721::{IERC721SafeDispatcher, IERC721SafeDispatcherTrait};
+use StarkBank::token::erc721::erc721::{IERC721SafeDispatcher, IERC721SafeDispatcherTrait,IERC721MetadataSafeDispatcher, IERC721MetadataSafeDispatcherTrait};
 
 
 const NAME: felt252 = 'nftGus';
@@ -98,6 +98,23 @@ fn test_approve(){
     erc721.approve(reciever,token_id);
     assert(erc721.get_approved(token_id).unwrap() == reciever, 'reciever should be approved');
 }
+
+
+// #[test]
+// #[available_gas(20000000)]
+// fn test_token_uri(){
+
+//     let reciever = contract_address_const::<'reciever'>();
+//     let (caller, erc721) = setup_test_env();
+
+//     let token_id: u256 = 111;
+//     let mut res: Span<felt252> = erc721.generate_token_uri(token_id);
+
+//     let first = res.pop_front().unwrap();
+//     assert(first == @'data:application/json,');
+
+//}
+
 
 
 fn setup_test_env() -> (ContractAddress, IERC721SafeDispatcher, ){

@@ -28,6 +28,8 @@ trait IERC721<TState> {
 #[starknet::interface]
 trait IERC721Metadata<TState> {
     fn token_uri(self: @TState, token_id: u256) -> felt252;
+    fn generate_token_uri(ref self: TState, token_id: u256) -> Span<felt252>;
+
 }
 
 //
