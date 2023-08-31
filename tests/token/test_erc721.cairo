@@ -13,6 +13,7 @@ use starknet::{
     ContractAddress, get_caller_address, contract_address_const,
     ClassHash,testing,
 };
+use starknet::testing::cheatcode;
 use snforge_std::{ PreparedContract, declare, deploy, PrintTrait };
 
 use StarkBank::token::erc721::ERC721::{
@@ -61,7 +62,7 @@ fn test_constructor() {
 
     '**** print constructor test ***'.print();
 
-    let (caller, erc721) = setup_test_env();
+    let (caller, erc721, erc721_metadata) = setup_test_env();
     let reciever:ContractAddress = contract_address_const::<'reciever'>();
 
 
@@ -80,7 +81,7 @@ fn test_constructor() {
 #[available_gas(20000000)]
 fn test_owner(){
     //owner is caller from setup
-    let (caller, erc721) = setup_test_env();
+    let (caller, erc721, erc721_metadata) = setup_test_env();
     let token_id: u256 = 111;
 
     assert(erc721.owner_of(token_id).unwrap() == caller, 'OWNER should be caller');
@@ -91,7 +92,7 @@ fn test_owner(){
 fn test_approve(){
 
     let reciever = contract_address_const::<'reciever'>();
-    let (caller, erc721) = setup_test_env();
+    let (caller, erc721, erc721_address) = setup_test_env();
 
      let token_id: u256 = 111;
     token_id.print();
@@ -100,35 +101,36 @@ fn test_approve(){
 }
 
 
-// #[test]
-// #[available_gas(20000000)]
-// fn test_token_uri(){
+#[test]
+#[available_gas(20000000)]
+fn test_token_uri(){
 
-//     let reciever = contract_address_const::<'reciever'>();
-//     let (caller, erc721) = setup_test_env();
+    let reciever = contract_address_const::<'reciever'>();
+    let (caller, erc721, erc721_metadata) = setup_test_env();
 
-//     let token_id: u256 = 111;
-//     let mut res: Span<felt252> = erc721.generate_token_uri(token_id);
+    let token_id: u256 = 111;
+    let mut res: Span<felt252> = (erc721_metadata.token_uri(token_id)).unwrap();
+    cheatcode::<'print'>(res);
+    let first = res.pop_front().unwrap();
+    assert(first == @'data:application/json,', 'Failed to fetch token uri');
 
-//     let first = res.pop_front().unwrap();
-//     assert(first == @'data:application/json,');
-
-//}
+}
 
 
 
-fn setup_test_env() -> (ContractAddress, IERC721SafeDispatcher, ){
+fn setup_test_env() -> (ContractAddress, IERC721SafeDispatcher, IERC721MetadataSafeDispatcher){
 
     let caller = contract_address_const::<'caller'>();
 
     let erc721_address: ContractAddress = deploy_erc721();
     // Get an interface to interact with the ERC20 contract.
     let erc721 = IERC721SafeDispatcher{contract_address: erc721_address};
+    let erc721_metadata = IERC721MetadataSafeDispatcher{contract_address: erc721_address};
 
     // Prank the caller.
     start_prank(erc721_address, caller);
     
-    (caller, erc721)
+    (caller, erc721, erc721_metadata)
 
 }
 

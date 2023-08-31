@@ -22,8 +22,7 @@ trait IERC721<TState> {
 
 #[starknet::interface]
 trait IERC721Metadata<TState> {
-    fn token_uri(self: @TState, token_id: u256) -> felt252;
-    fn generate_token_uri(ref self: TState, token_id: u256) -> Span<felt252>;
+    fn token_uri(ref self: TState, token_id: u256) -> Span<felt252>;
 }
 
 #[starknet::contract]
@@ -36,6 +35,7 @@ mod ERC721 {
     use starknet::get_caller_address;
     use zeroable::Zeroable;
     use cairo_json::json_metadata::{JsonMetadata, JsonMetadataTrait, DisplayType};
+    use traits::TryInto;
 
 
 
@@ -47,7 +47,7 @@ mod ERC721 {
         _balances: LegacyMap<ContractAddress, u256>,
         _token_approvals: LegacyMap<u256, ContractAddress>,
         _operator_approvals: LegacyMap<(ContractAddress, ContractAddress), bool>,
-        _token_uri: LegacyMap<u256, felt252>,
+        //_token_uri: LegacyMap<u256, felt252>,
     }
 
     #[event]
@@ -108,24 +108,9 @@ mod ERC721 {
 
     #[external(v0)]
     impl ERC721MetadataImpl of interface::IERC721Metadata<ContractState> {
-        fn token_uri(self: @ContractState, token_id: u256) -> felt252 {
+        fn token_uri(ref self: ContractState, token_id: u256) -> Span<felt252> {
             assert(self._exists(token_id), 'ERC721: invalid token ID');
-            self._token_uri.read(token_id)
-        }
-
-        fn generate_token_uri(ref self: ContractState, token_id: u256) -> Span<felt252> {
-            let mut uri: Array<felt252> = Default::default();
-            uri.append('data:application/json,');
-
-            let mut metadata: JsonMetadata = JsonMetadata {
-            members: Default::default(), attributes: Default::default()
-            };
-
-            self._add_metadata_members(ref metadata);
-
-            metadata.append_to_string(ref uri);
-
-            uri.span()
+            self._generate_token_uri(token_id)
         }
     }
 
@@ -189,28 +174,119 @@ mod ERC721 {
 
     #[generate_trait]
     impl UriHelper of UriHelperTrait {
-        fn _compute_cr(ref self: ContractState) -> felt252 {
-            '3.09'
+
+        fn _generate_token_uri(ref self: ContractState, token_id: u256) -> Span<felt252> {
+            let mut uri: Array<felt252> = Default::default();
+            uri.append('data:application/json,');
+
+            let mut metadata: JsonMetadata = JsonMetadata {
+            members: Default::default(), attributes: Default::default()
+            };
+
+            self._add_metadata_members(ref metadata);
+
+            metadata.append_to_string(ref uri);
+
+            uri.span()
         }
 
-        fn _compute_collateral(ref self: ContractState) -> felt252 {
-            '152.7'
+        //*========== HELPER FUNCTIONS DYNAMIC NFT VARIABLES ==========*/
+
+
+        fn _compute_cr(ref self: ContractState) -> u256 {
+           20
         }
+
+        //TODO
+        // fn _compute_collateral(ref self: ContractState) -> felt252 {
+        //     '152.7'
+        // }
 
         fn _compute_color(ref self: ContractState) -> felt252 {
-            let CR: u256 = self._compute_cr().into();
+            let CR: u256 = self._compute_cr();
 
-            if (CR <= 1) {
+            if (CR <= 10) {
                 RED
-            } else if (CR <= 2) {
+            } else if (CR <= 20) {
                 ORANGE
             } else {
                 GREEN
             }
         }
 
-        fn _compute_starkName(ref self: ContractState) -> felt252 {
-            '0xJustGus'
+        //TODO 
+        // fn _compute_starkName(ref self: ContractState) -> felt252 {
+        //     '0xJustGus'
+        // }
+
+
+        //*========== HELPER FUNCTIONS FOR DYNAMIC NFT ONCHAIN UPLOAD ==========*/
+
+
+        fn _upload_svg_onchain(ref self: ContractState)  -> Span<felt252>{
+
+            let color: felt252 = self._compute_color();
+            let CR: felt252 = (self._compute_cr()).try_into().unwrap();
+            //let addr: felt252 = self._compute_starkName();
+            //let collateral: felt252 = self._compute_collateral();
+
+
+            let mut arr: Array<felt252> = ArrayTrait::new();
+
+
+            arr.append('<svg xmlns="http://www.w3.');
+            arr.append('org/2000/svg" xmlns:xlink="ht');
+            arr.append('tp://www.w3.org/1999/xlink" v');
+            arr.append('ersion="1.1" viewBox="0 0 40');
+            arr.append('0 400" preserveAspectRatio=');
+            arr.append('"xMidYMid meet"> <style type=');
+            arr.append('"text/css"><![CDATA[ text { f');
+            arr.append('ont-family: monospace; font-s');
+            arr.append('ize: 21px; } .h1 { font-size');
+            arr.append(': 40px; font-weight: 600; } ]');
+            arr.append(']></style> <rect width="400"');
+            arr.append(' height="400" fill="');
+            arr.append(color);
+            arr.append('"/> <text class="h1" x="50" y');
+            arr.append('="70">Your lending </text> <t');
+            arr.append('ext class="h1" x="80" y="120');
+            arr.append('">position:</text> <text x="2');
+            arr.append('5%" y="210" style="font-size');
+            arr.append(':10px; text-anchor: middle;">');
+            arr.append('Health Factor: 3.09 </text> ');
+            arr.append('<text x="25%" y="230" style="fo');
+            arr.append('nt-size:10px; text-anchor: mi');
+            arr.append('ddle;">Collateral: 155$ </text');
+            arr.append('> <text x="75%" y="210" style=');
+            arr.append('"font-size:10px; text-anchor:');
+            arr.append(' middle;">Collateral Ratio: 0');
+            arr.append('.32</text> <text x="75%" y="2');
+            arr.append('30" style="font-size:10px; tex');
+            arr.append('t-anchor: middle;">Liabilities');
+            arr.append(': 40$</text> <text x="50%" y=');
+            arr.append('"360" style="font-size:12px; t');
+            arr.append('ext-anchor: middle;"> Your wa');
+            arr.append('llet address: </text> <text x');
+            arr.append('="50%" y="380" style="font-siz');
+            arr.append('e:10px; text-anchor: middle;">');
+            arr.append('0xF25c288A1FfE4b0a5B90C9cCCDD8E');
+            arr.append('13Bc7c7E685282813F5f9f </text>');
+            arr.append('</svg>');
+
+            arr.span()
+        }
+
+        fn _add_metadata_members(ref self: ContractState, ref metadata: JsonMetadata){
+            let mut name = ArrayTrait::<felt252>::new();
+            name.append('dNFTzzz');
+
+            let mut description = ArrayTrait::<felt252>::new();
+            description.append('View in an interactive way your');
+            description.append('borrowing positions');
+            
+            metadata.add_member('description', description.span());
+            metadata.add_member('name',name.span());
+            metadata.add_member('image', self._upload_svg_onchain());
         }
     }
 
@@ -303,77 +379,6 @@ mod ERC721 {
             self._owners.write(token_id, Zeroable::zero());
 
             self.emit(Transfer { from: owner, to: Zeroable::zero(), token_id });
-        }
-
-        fn _set_token_uri(ref self: ContractState, token_id: u256, token_uri: felt252){
-            assert(self._exists(token_id), 'ERC721: invalid token ID');
-            self._token_uri.write(token_id, token_uri)
-        }
-
-        fn _upload_svg_onchain(ref self: ContractState)  -> Span<felt252>{
-
-            let color: felt252 = self._compute_color();
-            let CR: felt252 = self._compute_cr();
-            let addr: felt252 = self._compute_starkName();
-            let collateral: felt252 = self._compute_collateral();
-
-
-            let mut arr: Array<felt252> = ArrayTrait::new();
-
-
-            arr.append('<svg xmlns="http://www.w3.');
-            arr.append('org/2000/svg" xmlns:xlink="ht');
-            arr.append('tp://www.w3.org/1999/xlink" v');
-            arr.append('ersion="1.1" viewBox="0 0 40');
-            arr.append('0 400" preserveAspectRatio=');
-            arr.append('"xMidYMid meet"> <style type=');
-            arr.append('"text/css"><![CDATA[ text { f');
-            arr.append('ont-family: monospace; font-s');
-            arr.append('ize: 21px; } .h1 { font-size');
-            arr.append(': 40px; font-weight: 600; } ]');
-            arr.append(']></style> <rect width="400"');
-            arr.append(' height="400" fill="');
-            arr.append(color);
-            arr.append('"/> <text class="h1" x="50" y');
-            arr.append('="70">Your lending </text> <t');
-            arr.append('ext class="h1" x="80" y="120');
-            arr.append('">position:</text> <text x="2');
-            arr.append('5%" y="210" style="font-size');
-            arr.append(':10px; text-anchor: middle;">');
-            arr.append('Health Factor: 3.09 </text> ');
-            arr.append('<text x="25%" y="230" style="fo');
-            arr.append('nt-size:10px; text-anchor: mi');
-            arr.append('ddle;">Collateral: 155$ </text');
-            arr.append('> <text x="75%" y="210" style=');
-            arr.append('"font-size:10px; text-anchor:');
-            arr.append(' middle;">Collateral Ratio: 0');
-            arr.append('.32</text> <text x="75%" y="2');
-            arr.append('30" style="font-size:10px; tex');
-            arr.append('t-anchor: middle;">Liabilities');
-            arr.append(': 40$</text> <text x="50%" y=');
-            arr.append('"360" style="font-size:12px; t');
-            arr.append('ext-anchor: middle;"> Your wa');
-            arr.append('llet address: </text> <text x');
-            arr.append('="50%" y="380" style="font-siz');
-            arr.append('e:10px; text-anchor: middle;">');
-            arr.append('0xF25c288A1FfE4b0a5B90C9cCCDD8E');
-            arr.append('13Bc7c7E685282813F5f9f </text>');
-            arr.append('</svg>');
-
-            arr.span()
-        }
-
-        fn _add_metadata_members(ref self: ContractState, ref metadata: JsonMetadata){
-            let mut name = ArrayTrait::<felt252>::new();
-            name.append('dNFTzzz');
-
-            let mut description = ArrayTrait::<felt252>::new();
-            description.append('View in an interactive way your');
-            description.append('borrowing positions');
-            
-            metadata.add_member('description', description.span());
-            metadata.add_member('name',name.span());
-            metadata.add_member('image', self._upload_svg_onchain());
         }
 
     }
