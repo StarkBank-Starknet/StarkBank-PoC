@@ -11,18 +11,21 @@ trait IERC721<TState> {
     fn symbol(self: @TState) -> felt252;
     fn balance_of(self: @TState, account: ContractAddress) -> u256;
     fn owner_of(self: @TState, token_id: u256) -> ContractAddress;
-    fn transfer_from(ref self: TState, from: ContractAddress, to: ContractAddress, token_id: u256);
+    //non transferable
+    //fn transfer_from(ref self: TState, from: ContractAddress, to: ContractAddress, token_id: u256);
     fn approve(ref self: TState, to: ContractAddress, token_id: u256);
     fn set_approval_for_all(ref self: TState, operator: ContractAddress, approved: bool);
     fn get_approved(self: @TState, token_id: u256) -> ContractAddress;
     fn is_approved_for_all(
         self: @TState, owner: ContractAddress, operator: ContractAddress
     ) -> bool;
+    fn mint(ref self: TState, to: ContractAddress, token_id: u256, collateral_ratio: u256);
 }
 
 #[starknet::interface]
 trait IERC721Metadata<TState> {
-    fn token_uri(ref self: TState, token_id: u256) -> Span<felt252>;
+        //fn token_uri(ref self: T@State, token_id: u256) -> Span<felt252>;
+        fn generate_token_uri(ref self: TState, token_id: u256,  collateral_ratio: u256) ->Span<felt252>;
 }
 
 #[starknet::contract]
@@ -47,7 +50,7 @@ mod ERC721 {
         _balances: LegacyMap<ContractAddress, u256>,
         _token_approvals: LegacyMap<u256, ContractAddress>,
         _operator_approvals: LegacyMap<(ContractAddress, ContractAddress), bool>,
-        //_token_uri: LegacyMap<u256, felt252>,
+       // _token_uri: LegacyMap<u256, Span<felt252>>,
     }
 
     #[event]
@@ -108,9 +111,19 @@ mod ERC721 {
 
     #[external(v0)]
     impl ERC721MetadataImpl of interface::IERC721Metadata<ContractState> {
-        fn token_uri(ref self: ContractState, token_id: u256) -> Span<felt252> {
+
+        // fn token_uri(ref self: ContractState, token_id: u256) -> Span<felt252> {
+        //     assert(self._exists(token_id), 'ERC721: invalid token ID');
+        //     let token_uri:Span<felt252> = self._generate_token_uri(token_id, collateral_ratio);
+        //     token_uri
+        //    // self._token_uri.read(token_id)
+        // }
+
+        fn generate_token_uri(ref self: ContractState, token_id: u256, collateral_ratio: u256) ->Span<felt252>{
             assert(self._exists(token_id), 'ERC721: invalid token ID');
-            self._generate_token_uri(token_id)
+            let token_uri:Span<felt252> = self._generate_token_uri(token_id, collateral_ratio);
+           // self._token_uri.write(token_id,token_uri);
+            token_uri
         }
     }
 
@@ -161,21 +174,26 @@ mod ERC721 {
             self._set_approval_for_all(get_caller_address(), operator, approved)
         }
 
-        fn transfer_from(
-            ref self: ContractState, from: ContractAddress, to: ContractAddress, token_id: u256
-        ) {
-            assert(
-                self._is_approved_or_owner(get_caller_address(), token_id),
-                'ERC721: unauthorized caller'
-            );
-            self._transfer(from, to, token_id);
+        // fn transfer_from(
+        //     ref self: ContractState, from: ContractAddress, to: ContractAddress, token_id: u256
+        // ) {
+        //     assert(
+        //         self._is_approved_or_owner(get_caller_address(), token_id),
+        //         'ERC721: unauthorized caller'
+        //     );
+        //     self._transfer(from, to, token_id);
+        // }
+
+        fn mint(ref self: ContractState, to: ContractAddress, token_id: u256, collateral_ratio: u256){
+            self._mint(to, token_id);
+            self._generate_token_uri(token_id, collateral_ratio);
         }
     }
 
     #[generate_trait]
     impl UriHelper of UriHelperTrait {
 
-        fn _generate_token_uri(ref self: ContractState, token_id: u256) -> Span<felt252> {
+        fn _generate_token_uri(ref self: ContractState, token_id: u256, collateral_ratio: u256) -> Span<felt252> {
             let mut uri: Array<felt252> = Default::default();
             uri.append('data:application/json,');
 
@@ -183,7 +201,15 @@ mod ERC721 {
             members: Default::default(), attributes: Default::default()
             };
 
-            self._add_metadata_members(ref metadata);
+
+            let color: felt252 = self._compute_color(collateral_ratio);
+            let CR: felt252 = collateral_ratio.try_into().unwrap();
+            let collateral: felt252 = '';
+            let liabilities: felt252 = '';
+            //let addr: felt252 = self._compute_starkName();
+
+            let svg: Span<felt252> = self._upload_svg_onchain(color, CR, collateral, liabilities);
+            self._add_metadata_members(ref metadata, svg);
 
             metadata.append_to_string(ref uri);
 
@@ -193,21 +219,12 @@ mod ERC721 {
         //*========== HELPER FUNCTIONS DYNAMIC NFT VARIABLES ==========*/
 
 
-        fn _compute_cr(ref self: ContractState) -> u256 {
-           20
-        }
 
-        //TODO
-        // fn _compute_collateral(ref self: ContractState) -> felt252 {
-        //     '152.7'
-        // }
+        fn _compute_color(ref self: ContractState, collateral_ratio: u256) -> felt252 {
 
-        fn _compute_color(ref self: ContractState) -> felt252 {
-            let CR: u256 = self._compute_cr();
-
-            if (CR <= 10) {
+            if (collateral_ratio <= 10) {
                 RED
-            } else if (CR <= 20) {
+            } else if (collateral_ratio <= 20) {
                 ORANGE
             } else {
                 GREEN
@@ -223,13 +240,7 @@ mod ERC721 {
         //*========== HELPER FUNCTIONS FOR DYNAMIC NFT ONCHAIN UPLOAD ==========*/
 
 
-        fn _upload_svg_onchain(ref self: ContractState)  -> Span<felt252>{
-
-            let color: felt252 = self._compute_color();
-            let CR: felt252 = (self._compute_cr()).try_into().unwrap();
-            //let addr: felt252 = self._compute_starkName();
-            //let collateral: felt252 = self._compute_collateral();
-
+        fn _upload_svg_onchain(self: @ContractState, color: felt252,CR: felt252, collateral:felt252, liabilities: felt252)  -> Span<felt252>{
 
             let mut arr: Array<felt252> = ArrayTrait::new();
 
@@ -276,7 +287,7 @@ mod ERC721 {
             arr.span()
         }
 
-        fn _add_metadata_members(ref self: ContractState, ref metadata: JsonMetadata){
+        fn _add_metadata_members(ref self: ContractState, ref metadata: JsonMetadata, svg: Span<felt252>){
             let mut name = ArrayTrait::<felt252>::new();
             name.append('dNFTzzz');
 
@@ -286,7 +297,7 @@ mod ERC721 {
             
             metadata.add_member('description', description.span());
             metadata.add_member('name',name.span());
-            metadata.add_member('image', self._upload_svg_onchain());
+            metadata.add_member('image', svg);
         }
     }
 

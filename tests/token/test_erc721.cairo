@@ -70,7 +70,7 @@ fn test_constructor() {
     assert(erc721.symbol().unwrap() == SYMBOL, 'Symbol should be SYMBOL');
     assert(erc721.balance_of(caller).unwrap() == 1, 'Balance should be one');
 
-    let token_id: u256 = 111;
+    let token_id: u256 = 1;
     token_id.print();
     erc721.approve(reciever,token_id);
     assert((erc721.get_approved(token_id)).unwrap() == reciever, 'reciever should be approved');
@@ -82,7 +82,7 @@ fn test_constructor() {
 fn test_owner(){
     //owner is caller from setup
     let (caller, erc721, erc721_metadata) = setup_test_env();
-    let token_id: u256 = 111;
+    let token_id: u256 = 1;
 
     assert(erc721.owner_of(token_id).unwrap() == caller, 'OWNER should be caller');
 }
@@ -94,7 +94,7 @@ fn test_approve(){
     let reciever = contract_address_const::<'reciever'>();
     let (caller, erc721, erc721_address) = setup_test_env();
 
-     let token_id: u256 = 111;
+     let token_id: u256 = 1;
     token_id.print();
     erc721.approve(reciever,token_id);
     assert(erc721.get_approved(token_id).unwrap() == reciever, 'reciever should be approved');
@@ -108,13 +108,56 @@ fn test_token_uri(){
     let reciever = contract_address_const::<'reciever'>();
     let (caller, erc721, erc721_metadata) = setup_test_env();
 
-    let token_id: u256 = 111;
-    let mut res: Span<felt252> = (erc721_metadata.token_uri(token_id)).unwrap();
+    let token_id: u256 = 1;
+    let collateral_ratio: u256 = 10;
+
+    let mut res: Span<felt252> = (erc721_metadata.generate_token_uri(token_id, collateral_ratio)).unwrap();
+    //cheatcode::<'print'>(res);
+    let first = res.pop_front().unwrap();
+    assert(first == @'data:application/json,', 'Failed to fetch token uri');
+
+}
+
+
+#[test]
+#[available_gas(20000000)]
+fn test_mint(){
+    let receiver = contract_address_const::<'minter'>();
+    let (caller, erc721, erc721_metadata) = setup_test_env();
+
+    //start_prank(erc721, receiver);
+
+    let collateral_ratio = 20;
+    let token_id = 2;
+    erc721.mint(receiver, token_id,collateral_ratio);
+    assert(erc721.balance_of(receiver).unwrap() == 1, 'Balance should be one');
+    assert(erc721.owner_of(token_id).unwrap() == receiver, 'owner should be receiver');
+
+}
+
+
+#[test]
+#[available_gas(20000000)]
+fn test_token_uri_on_newly_minted(){
+        let receiver = contract_address_const::<'minter'>();
+    let (caller, erc721, erc721_metadata) = setup_test_env();
+
+    //start_prank(erc721, receiver);
+
+    let collateral_ratio = 20;
+    let token_id = 2;
+    erc721.mint(receiver, token_id,collateral_ratio);
+    assert(erc721.balance_of(receiver).unwrap() == 1, 'Balance should be one');
+    assert(erc721.owner_of(token_id).unwrap() == receiver, 'owner should be receiver');
+
+    let mut res: Span<felt252> = (erc721_metadata.generate_token_uri(token_id, collateral_ratio)).unwrap();
     cheatcode::<'print'>(res);
     let first = res.pop_front().unwrap();
     assert(first == @'data:application/json,', 'Failed to fetch token uri');
 
 }
+
+
 
 
 
@@ -145,7 +188,7 @@ fn deploy_erc721() -> ContractAddress{
     constructor_calldata.append(NAME);
     constructor_calldata.append(SYMBOL);
     constructor_calldata.append(caller.into());
-    let token: u256 = 111;
+    let token: u256 = 1;
     constructor_calldata.append(token.low.into());
     //(token.high).print();
     //token.low.print();
